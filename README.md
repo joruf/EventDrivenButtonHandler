@@ -88,9 +88,26 @@ void setup() {
 
   btnUpDown.addButton(&btnUp);
   btnUpDown.addButton(&btnDown);
-  btnUpDown.setSimultaneousClickHandler([](uint8_t idx1, uint8_t idx2) {
-    Serial.println("Simultaneous pressed");
-  });
+  btnUpDown.addClickHandler([](ClickType type){
+    switch(type){
+        case ClickType::SHORT_CLICK_DOWN:
+        Serial.println("Simultaneous pressed SHORT_CLICK_DOWN");
+        // handle short down
+        break;
+        case ClickType::LONG_CLICK_DOWN:
+        Serial.println("Simultaneous pressed LONG_CLICK_DOWN");
+        // handle long down
+        break;
+        case ClickType::SHORT_CLICK_UP:
+        Serial.println("Simultaneous pressed SHORT_CLICK_UP");
+        // handle short up
+        break;
+        case ClickType::LONG_CLICK_UP:
+        Serial.println("Simultaneous pressed LONG_CLICK_UP");
+        // handle long up
+        break;
+    }
+});
 }
 
 void loop() {  
