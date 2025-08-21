@@ -39,12 +39,11 @@ lib_deps =
 ```
 
 ### Example
-```
+```c++
 #include "EventDrivenButtonHandler.h"
 
 #define BUTTON_ACTION 27 // GPIO PIN
 EventDrivenButtonHandler myButton(BUTTON_ACTION);
-
 
 void setup() {
   Serial.begin(115200);
@@ -72,9 +71,7 @@ void setup() {
             break;
     }
   });
-
 }
-
 
 void loop() {  
   myButton.update();
