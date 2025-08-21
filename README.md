@@ -75,7 +75,6 @@ void setup() {
     }
   });
 
-
   btnDown.setClickThreshold(50);
   btnDown.setLongClickThreshold(500);
   btnDown.setDebounceTime(50);
@@ -86,7 +85,6 @@ void setup() {
             break;
     }
   });
-
 
   btnUpDown.addButton(&btnUp);
   btnUpDown.addButton(&btnDown);
