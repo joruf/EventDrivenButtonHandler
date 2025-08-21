@@ -1,24 +1,31 @@
 #include "MultiButtonHandler.h"
+#include <Arduino.h>
 
 /**
  * @brief Construct a new MultiButtonHandler object
  * @param simultaneousThreshold Time threshold in milliseconds for considering
  *        button presses as simultaneous (default: 50ms)
+ * @param longThreshold Time threshold in milliseconds for considering
+ *        a press as a long press (default: 1000ms)
  */
-MultiButtonHandler::MultiButtonHandler(unsigned long simultaneousThreshold)
+MultiButtonHandler::MultiButtonHandler(unsigned long simultaneousThreshold,
+                                       unsigned long longThreshold)
     : simultaneousThreshold(simultaneousThreshold),
-      simultaneousReported(false) {}
+      longThreshold(longThreshold), comboActive(false),
+      longPressReported(false) {}
 
 /**
  * @brief Add a button to be monitored for simultaneous presses
  * @param button Pointer to an EventDrivenButtonHandler instance
  */
 void MultiButtonHandler::addButton(EventDrivenButtonHandler *button) {
-  ButtonState state;
-  state.handler = button;
-  state.wasPressed = false;
-  state.pressStartTime = 0;
-  buttons.push_back(state);
+  ButtonState s;
+  s.btn = button;
+  s.pressed = button->isPressed();
+  s.pressStart = s.pressed ? millis() : 0;
+  s.releaseTime = 0;
+  s.longReported = false;
+  buttons.push_back(s);
 }
 
 /**
@@ -26,9 +33,8 @@ void MultiButtonHandler::addButton(EventDrivenButtonHandler *button) {
  * @param handler Callback function to be invoked when simultaneous presses are
  * detected
  */
-void MultiButtonHandler::setSimultaneousClickHandler(
-    SimultaneousClickHandler handler) {
-  simultaneousHandler = handler;
+void MultiButtonHandler::addClickHandler(ComboHandlerFn handler) {
+  comboHandlers.push_back(handler);
 }
 
 /**
@@ -40,66 +46,114 @@ void MultiButtonHandler::setSimultaneousClickHandler(
  * button handling.
  */
 void MultiButtonHandler::update() {
-  for (auto &btnState : buttons) {
-    btnState.handler->update();
+  unsigned long now = millis();
+
+  // Update state for each button
+  for (auto &s : buttons) {
+    bool currentlyPressed = s.btn->isPressed();
+
+    // Rising edge: press started
+    if (currentlyPressed && !s.pressed) {
+      s.pressed = true;
+      s.pressStart = now;
+      s.longReported = false;
+    }
+    // Falling edge: released
+    else if (!currentlyPressed && s.pressed) {
+      s.pressed = false;
+      s.releaseTime = now;
+      s.longReported = false;
+    }
   }
-  checkSimultaneousPress();
+
+  // Check for combo events
+  bool allPressed = allButtonsPressedWithinThreshold();
+  bool allReleased = allButtonsReleasedWithinThreshold();
+
+  if (allPressed && !comboActive) {
+    // New combo detected - report SHORT_CLICK_DOWN
+    comboActive = true;
+    longPressReported = false;
+    dispatchComboEvent(ClickType::SHORT_CLICK_DOWN);
+  } else if (allPressed && comboActive && !longPressReported) {
+    // Check for long press
+    unsigned long pressDuration = now - buttons[0].pressStart;
+    if (pressDuration >= longThreshold) {
+      longPressReported = true;
+      dispatchComboEvent(ClickType::LONG_CLICK_DOWN);
+    }
+  } else if (allReleased && comboActive) {
+    // Combo ended - report appropriate UP event
+    unsigned long pressDuration =
+        buttons[0].releaseTime - buttons[0].pressStart;
+    if (pressDuration >= longThreshold) {
+      dispatchComboEvent(ClickType::LONG_CLICK_UP);
+    } else {
+      dispatchComboEvent(ClickType::SHORT_CLICK_UP);
+    }
+    comboActive = false;
+    longPressReported = false;
+  }
 }
 
 /**
- * @brief Check for simultaneous button presses
- *
- * This internal method detects when multiple buttons are pressed within the
- * configured time threshold. It prevents multiple triggers for the same event
- * and resets the detection state when all buttons are released.
+ * @brief Check if all buttons were pressed within the time threshold
+ * @return True if all buttons are pressed and within the time threshold
  */
-void MultiButtonHandler::checkSimultaneousPress() {
-  unsigned long currentTime = millis();
-  std::vector<uint8_t> currentlyPressed;
+bool MultiButtonHandler::allButtonsPressedWithinThreshold() {
+  if (buttons.empty())
+    return false;
 
-  // Capture all currently pressed buttons
-  for (uint8_t i = 0; i < buttons.size(); i++) {
-    bool isPressed = buttons[i].handler->getPressedState();
-
-    if (isPressed && !buttons[i].wasPressed) {
-      // Button was just pressed - record the press time
-      buttons[i].pressStartTime = currentTime;
-    }
-
-    buttons[i].wasPressed = isPressed;
-
-    if (isPressed) {
-      currentlyPressed.push_back(i);
-    }
+  // Find the latest press time
+  unsigned long latestPress = 0;
+  for (const auto &s : buttons) {
+    if (!s.pressed)
+      return false;
+    if (s.pressStart > latestPress)
+      latestPress = s.pressStart;
   }
 
-  // Reset reported status when no buttons are pressed
-  if (currentlyPressed.empty()) {
-    simultaneousReported = false;
-    return;
+  // Check if all buttons were pressed within the threshold
+  for (const auto &s : buttons) {
+    if (latestPress - s.pressStart > simultaneousThreshold)
+      return false;
   }
 
-  // Check for simultaneous pressing of at least two buttons
-  if (currentlyPressed.size() >= 2 && !simultaneousReported) {
-    unsigned long oldestPress = currentTime;
-    unsigned long newestPress = 0;
+  return true;
+}
 
-    // Find the oldest and newest press times
-    for (auto idx : currentlyPressed) {
-      if (buttons[idx].pressStartTime < oldestPress) {
-        oldestPress = buttons[idx].pressStartTime;
-      }
-      if (buttons[idx].pressStartTime > newestPress) {
-        newestPress = buttons[idx].pressStartTime;
-      }
-    }
+/**
+ * @brief Check if all buttons were released within the time threshold
+ * @return True if all buttons are released and within the time threshold
+ */
+bool MultiButtonHandler::allButtonsReleasedWithinThreshold() {
+  if (buttons.empty())
+    return false;
 
-    // Check if the time difference is within the threshold
-    if (newestPress - oldestPress <= simultaneousThreshold) {
-      simultaneousReported = true;
-      if (simultaneousHandler) {
-        simultaneousHandler(currentlyPressed[0], currentlyPressed[1]);
-      }
-    }
+  // Find the latest release time
+  unsigned long latestRelease = 0;
+  for (const auto &s : buttons) {
+    if (s.pressed)
+      return false;
+    if (s.releaseTime > latestRelease)
+      latestRelease = s.releaseTime;
+  }
+
+  // Check if all buttons were released within the threshold
+  for (const auto &s : buttons) {
+    if (latestRelease - s.releaseTime > simultaneousThreshold)
+      return false;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Dispatch combo event to all registered handlers
+ * @param clickType Type of click event to dispatch
+ */
+void MultiButtonHandler::dispatchComboEvent(ClickType clickType) {
+  for (auto &handler : comboHandlers) {
+    handler(clickType);
   }
 }

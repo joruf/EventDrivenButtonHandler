@@ -5,53 +5,97 @@
 #include <functional>
 #include <vector>
 
+/**
+ * MultiButtonHandler
+ *
+ * Detects events occurring across multiple EventDrivenButtonHandler instances.
+ * It supports registering handlers for combinations of buttons and will
+ * forward a ClickType (SHORT_CLICK_DOWN, SHORT_CLICK_UP, LONG_CLICK_DOWN,
+ * LONG_CLICK_UP) to callbacks just like
+ * EventDrivenButtonHandler::addClickHandler does for single buttons.
+ *
+ * The API intentionally mirrors EventDrivenButtonHandler's callback signature
+ * by providing callbacks that receive a ClickType. For multi-button combos
+ * the callback is registered for all buttons and is invoked with the ClickType
+ * when all buttons are pressed or released within the simultaneous threshold.
+ */
 class MultiButtonHandler {
 public:
-  /// @brief Type definition for the simultaneous click callback function
-  /// @param buttonIndex1 The index of the first button in the simultaneous
-  /// press
-  /// @param buttonIndex2 The index of the second button in the simultaneous
-  /// press
-  typedef std::function<void(uint8_t buttonIndex1, uint8_t buttonIndex2)>
-      SimultaneousClickHandler;
+  // @brief Handler signature: receives the ClickType of the event
+  typedef std::function<void(ClickType)> ComboHandlerFn;
 
-  /// @brief Construct a new MultiButtonHandler object
-  /// @param simultaneousThreshold Time threshold in milliseconds for
-  /// considering
-  ///        button presses as simultaneous (default: 50ms)
-  MultiButtonHandler(unsigned long simultaneousThreshold = 50);
+  /**
+   * @brief Construct a new MultiButtonHandler object
+   * @param simultaneousThreshold Time threshold in milliseconds for considering
+   *        button presses as simultaneous (default: 50ms)
+   * @param longThreshold Time threshold in milliseconds for considering
+   *        a press as a long press (default: 1000ms)
+   */
+  MultiButtonHandler(unsigned long simultaneousThreshold = 50,
+                     unsigned long longThreshold = 1000);
 
-  /// @brief Add a button to be monitored for simultaneous presses
-  /// @param button Pointer to an EventDrivenButtonHandler instance
+  /**
+   * @brief Add a button to be monitored for simultaneous presses
+   * @param button Pointer to an EventDrivenButtonHandler instance
+   */
   void addButton(EventDrivenButtonHandler *button);
 
-  /// @brief Set the callback function for simultaneous press events
-  /// @param handler Callback function to be invoked when simultaneous presses
-  /// are detected
-  void setSimultaneousClickHandler(SimultaneousClickHandler handler);
+  /**
+   * @brief Set the callback function for simultaneous press events
+   * @param handler Callback function to be invoked when simultaneous presses
+   * are detected
+   */
+  void addClickHandler(ComboHandlerFn handler);
 
-  /// @brief Update the state of all buttons - must be called regularly in the
-  /// main loop
+  /**
+   * @brief Update the state of all buttons - must be called regularly in the
+   * main loop
+   *
+   * This method updates all registered buttons and checks for simultaneous
+   * presses. It should be called frequently in the main loop to ensure
+   * responsive button handling.
+   */
   void update();
 
 private:
-  /// @brief Internal structure to track the state of each button
+  // @brief Internal structure to track the state of each button
   struct ButtonState {
-    EventDrivenButtonHandler *handler; ///< Pointer to the button handler
-    bool wasPressed;                   ///< Previous pressed state
-    unsigned long pressStartTime; ///< Timestamp when the button was pressed
+    EventDrivenButtonHandler *btn = nullptr; // Pointer to the button handler
+    bool pressed = false;                    // Current pressed state
+    unsigned long pressStart = 0;  // Timestamp when the button was pressed
+    unsigned long releaseTime = 0; // Timestamp when the button was released
+    bool longReported = false;     // Flag to track if long press was reported
   };
 
   std::vector<ButtonState>
-      buttons; ///< List of tracked buttons and their states
-  SimultaneousClickHandler
-      simultaneousHandler; ///< Callback for simultaneous press events
-  unsigned long
-      simultaneousThreshold; ///< Time window for simultaneous detection
-  bool simultaneousReported; ///< Flag to prevent multiple triggers
+      buttons; // List of tracked buttons and their states
+  std::vector<ComboHandlerFn>
+      comboHandlers; // List of callback functions for combo events
 
-  /// @brief Internal method to check for and handle simultaneous button presses
-  void checkSimultaneousPress();
+  unsigned long
+      simultaneousThreshold;   // Time window for simultaneous detection
+  unsigned long longThreshold; // Time threshold for long press detection
+
+  bool comboActive;       // Flag to prevent multiple triggers
+  bool longPressReported; // Flag to track if long press was reported
+
+  /**
+   * @brief Check if all buttons were pressed within the time threshold
+   * @return True if all buttons are pressed and within the time threshold
+   */
+  bool allButtonsPressedWithinThreshold();
+
+  /**
+   * @brief Check if all buttons were released within the time threshold
+   * @return True if all buttons are released and within the time threshold
+   */
+  bool allButtonsReleasedWithinThreshold();
+
+  /**
+   * @brief Dispatch combo event to all registered handlers
+   * @param clickType Type of click event to dispatch
+   */
+  void dispatchComboEvent(ClickType clickType);
 };
 
 #endif

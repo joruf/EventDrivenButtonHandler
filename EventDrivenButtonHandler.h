@@ -97,6 +97,12 @@ public:
    */
   void update();
 
+  /**
+   * @brief Reads the current state of the button
+   * @return True if the button is pressed, false otherwise
+   */
+  bool isPressed() const;
+
 private:
   uint8_t pin;                      // GPIO pin number for the button
   bool activeLow;                   // Whether the button is active low
@@ -113,12 +119,6 @@ private:
 
   std::vector<std::function<void(ClickType)>>
       handlers; // List of registered callback functions
-
-  /**
-   * @brief Reads the current state of the button
-   * @return True if the button is pressed, false otherwise
-   */
-  bool isPressed() const;
 
   /**
    * @brief Notifies all registered handlers of a button event
