@@ -9,15 +9,15 @@
  * MultiButtonHandler
  *
  * Detects events occurring across multiple SingleButtonHandler instances.
- * It supports registering handlers for combinations of buttons and will
- * forward a ClickType (SHORT_CLICK_DOWN, SHORT_CLICK_UP, LONG_CLICK_DOWN,
- * LONG_CLICK_UP) to callbacks just like
- * SingleButtonHandler::addClickHandler does for single buttons.
+ * Supports registering multiple handlers for combinations of buttons and will
+ * forward ClickType events (SHORT_CLICK_DOWN, SHORT_CLICK_UP, LONG_CLICK_DOWN,
+ * LONG_CLICK_UP) to all registered callbacks when simultaneous presses are
+ * detected.
  *
  * The API intentionally mirrors SingleButtonHandler's callback signature
  * by providing callbacks that receive a ClickType. For multi-button combos
- * the callback is registered for all buttons and is invoked with the ClickType
- * when all buttons are pressed or released within the simultaneous threshold.
+ * multiple callbacks can be registered and will all be invoked when the combo
+ * condition is met.
  */
 class MultiButtonHandler {
 public:
@@ -41,9 +41,12 @@ public:
   void addButton(SingleButtonHandler *button);
 
   /**
-   * @brief Set the callback function for simultaneous press events
+   * @brief Add a callback function for simultaneous press events
    * @param handler Callback function to be invoked when simultaneous presses
    * are detected
+   *
+   * Multiple callbacks can be registered and will be called in the order of
+   * registration when combo events occur.
    */
   void addClickHandler(ComboHandlerFn handler);
 
@@ -61,19 +64,17 @@ private:
   // @brief Internal structure to track the state of each button
   struct ButtonState {
     SingleButtonHandler *btn = nullptr; // Pointer to the button handler
-    bool pressed = false;                    // Current pressed state
-    unsigned long pressStart = 0;  // Timestamp when the button was pressed
+    bool pressed = false;               // Current pressed state
+    unsigned long pressStart = 0;       // Timestamp when the button was pressed
     unsigned long releaseTime = 0; // Timestamp when the button was released
     bool longReported = false;     // Flag to track if long press was reported
   };
 
-  std::vector<ButtonState>
-      buttons; // List of tracked buttons and their states
+  std::vector<ButtonState> buttons; // List of tracked buttons and their states
   std::vector<ComboHandlerFn>
       comboHandlers; // List of callback functions for combo events
 
-  unsigned long
-      simultaneousThreshold;   // Time window for simultaneous detection
+  unsigned long simultaneousThreshold; // Time window for simultaneous detection
   unsigned long longThreshold; // Time threshold for long press detection
 
   bool comboActive;       // Flag to prevent multiple triggers

@@ -29,9 +29,12 @@ void MultiButtonHandler::addButton(SingleButtonHandler *button) {
 }
 
 /**
- * @brief Set the callback function for simultaneous press events
- * @param handler Callback function to be invoked when simultaneous presses are
- * detected
+ * @brief Add a callback function for simultaneous press events
+ * @param handler Callback function to be invoked when simultaneous presses
+ * are detected
+ *
+ * Multiple callbacks can be registered and will be called in the order of
+ * registration when combo events occur.
  */
 void MultiButtonHandler::addClickHandler(ComboHandlerFn handler) {
   comboHandlers.push_back(handler);

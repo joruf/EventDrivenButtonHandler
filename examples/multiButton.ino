@@ -1,5 +1,5 @@
-#include "SingleButtonHandler.h"
 #include "MultiButtonHandler.h"
+#include "SingleButtonHandler.h"
 
 // GPIO PINs
 #define BUTTON_UP 26

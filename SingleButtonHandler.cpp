@@ -7,7 +7,7 @@
  * @param pullup Enables the internal pullup resistor
  */
 SingleButtonHandler::SingleButtonHandler(uint8_t pin, bool activeLow,
-                                                   bool pullup)
+                                         bool pullup)
     : pin(pin), activeLow(activeLow), clickThreshold(50),
       longClickThreshold(1000), debounceTime(50), pressStartTime(0),
       lastEventTime(0), wasPressed(false), longClickDetected(false),

@@ -36,8 +36,7 @@ public:
    * (default: true)
    * @param pullup Enables the internal pullup resistor (default: true)
    */
-  SingleButtonHandler(uint8_t pin, bool activeLow = true,
-                           bool pullup = true);
+  SingleButtonHandler(uint8_t pin, bool activeLow = true, bool pullup = true);
 
   /**
    * @brief Destructor for the button handler
