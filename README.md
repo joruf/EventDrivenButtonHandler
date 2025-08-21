@@ -15,6 +15,7 @@ A non-blocking Arduino library for event-driven button handling with advanced ca
   - `LONG_CLICK_UP`: Triggered when a long click is released
   - `DURING_PRESS`: Continuous events while button is held
 - **🔧 Built-in Debouncing**: Software debouncing for reliable mechanical switch handling
+- **🤝 Multi-Button Support**: Detect simultaneous button presses for advanced interactions
 - **⏰ Configurable Timing**: Customizable thresholds for all timing parameters
 - **🔌 Flexible Wiring**: Supports both active-low and active-high configurations
 - **🚀 Non-Blocking**: Minimal impact on main loop performance
@@ -38,18 +39,23 @@ lib_deps =
 ### Example
 ```c++
 #include "EventDrivenButtonHandler.h"
+#include "MultiButtonHandler.h"
 
-#define BUTTON_ACTION 27 // GPIO PIN
-EventDrivenButtonHandler myButton(BUTTON_ACTION);
+// GPIO PINs
+#define BUTTON_UP 27
+#define BUTTON_DOWN 28
+
+EventDrivenButtonHandler btnUp(BUTTON_UP);
+EventDrivenButtonHandler btnDown(BUTTON_DOWN);
+MultiButtonHandler btnUpDown(50);
 
 void setup() {
   Serial.begin(115200);
 
-  myButton.setClickThreshold(50);
-  myButton.setLongClickThreshold(500);
-  myButton.setDebounceTime(50);
-
-  myButton.addClickHandler([](ClickType type) {
+  btnUp.setClickThreshold(50);
+  btnUp.setLongClickThreshold(500);
+  btnUp.setDebounceTime(50);
+  btnUp.addClickHandler([](ClickType type) {
     switch(type) {
         case ClickType::SHORT_CLICK_DOWN:
             Serial.println("Short Click Down");
@@ -68,10 +74,32 @@ void setup() {
             break;
     }
   });
+
+
+  btnDown.setClickThreshold(50);
+  btnDown.setLongClickThreshold(500);
+  btnDown.setDebounceTime(50);
+  btnDown.addClickHandler([](ClickType type) {
+    switch(type) {
+        case ClickType::SHORT_CLICK_DOWN:
+            Serial.println("Short Down Click Down");
+            break;
+    }
+  });
+
+
+  btnUpDown.addButton(&btnUp);
+  btnUpDown.addButton(&btnDown);
+  btnUpDown.setSimultaneousClickHandler([](uint8_t idx1, uint8_t idx2) {
+    Serial.println("Simultaneous pressed");
+  });
 }
 
 void loop() {  
-  myButton.update();
+  btnUp.update();
+  btnDown.update();
+  btnUpDown.update();
+
   delay(100);
 }
 ```
