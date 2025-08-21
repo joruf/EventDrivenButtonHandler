@@ -21,13 +21,13 @@ enum class ClickType {
 };
 
 /**
- * @class EventDrivenButtonHandler
+ * @class SingleButtonHandler
  * @brief Advanced button handler class with callback functionality
  *
  * This class enables detection of various button interactions (short/long
  * clicks) and allows registration of callback functions for these events.
  */
-class EventDrivenButtonHandler {
+class SingleButtonHandler {
 public:
   /**
    * @brief Constructor for the button handler
@@ -36,13 +36,13 @@ public:
    * (default: true)
    * @param pullup Enables the internal pullup resistor (default: true)
    */
-  EventDrivenButtonHandler(uint8_t pin, bool activeLow = true,
+  SingleButtonHandler(uint8_t pin, bool activeLow = true,
                            bool pullup = true);
 
   /**
    * @brief Destructor for the button handler
    */
-  ~EventDrivenButtonHandler();
+  ~SingleButtonHandler();
 
   /**
    * @brief Sets the threshold for click detection

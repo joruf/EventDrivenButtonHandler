@@ -55,7 +55,7 @@ void setup() {
   btnUp.setClickThreshold(50);
   btnUp.setLongClickThreshold(500);
   btnUp.setDebounceTime(50);
-  btnUp.addClickHandler([](ClickType type) {
+  btnUp.addClickHandler([](ClickType type) { // or btnUp.addClickHandler([this](ClickType type)... when inside a class
     switch(type) {
         case ClickType::SHORT_CLICK_DOWN:
             Serial.println("Short Click Down");

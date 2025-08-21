@@ -1,4 +1,4 @@
-#include "EventDrivenButtonHandler.h"
+#include "SingleButtonHandler.h"
 
 /**
  * @brief Constructor for the button handler
@@ -6,7 +6,7 @@
  * @param activeLow Specifies if the button operates in active-low mode
  * @param pullup Enables the internal pullup resistor
  */
-EventDrivenButtonHandler::EventDrivenButtonHandler(uint8_t pin, bool activeLow,
+SingleButtonHandler::SingleButtonHandler(uint8_t pin, bool activeLow,
                                                    bool pullup)
     : pin(pin), activeLow(activeLow), clickThreshold(50),
       longClickThreshold(1000), debounceTime(50), pressStartTime(0),
@@ -24,20 +24,20 @@ EventDrivenButtonHandler::EventDrivenButtonHandler(uint8_t pin, bool activeLow,
 /**
  * @brief Destructor for the button handler
  */
-EventDrivenButtonHandler::~EventDrivenButtonHandler() { handlers.clear(); }
+SingleButtonHandler::~SingleButtonHandler() { handlers.clear(); }
 
 /**
  * @brief Gets the current pressed state of the button
  * @return True if the button is pressed, false otherwise
  */
-bool EventDrivenButtonHandler::getPressedState() const { return isPressed(); }
+bool SingleButtonHandler::getPressedState() const { return isPressed(); }
 
 /**
  * @brief Sets the threshold for click detection
  * @param threshold Time in milliseconds after which a press is recognized as a
  * valid click
  */
-void EventDrivenButtonHandler::setClickThreshold(unsigned long threshold) {
+void SingleButtonHandler::setClickThreshold(unsigned long threshold) {
   clickThreshold = threshold;
 }
 
@@ -46,7 +46,7 @@ void EventDrivenButtonHandler::setClickThreshold(unsigned long threshold) {
  * @param threshold Time in milliseconds after which a press is recognized as a
  * long click
  */
-void EventDrivenButtonHandler::setLongClickThreshold(unsigned long threshold) {
+void SingleButtonHandler::setLongClickThreshold(unsigned long threshold) {
   longClickThreshold = threshold;
 }
 
@@ -55,7 +55,7 @@ void EventDrivenButtonHandler::setLongClickThreshold(unsigned long threshold) {
  * @param time Time in milliseconds to ignore state changes after a detected
  * change
  */
-void EventDrivenButtonHandler::setDebounceTime(unsigned long time) {
+void SingleButtonHandler::setDebounceTime(unsigned long time) {
   debounceTime = time;
 }
 
@@ -63,7 +63,7 @@ void EventDrivenButtonHandler::setDebounceTime(unsigned long time) {
  * @brief Adds a callback function to handle button events
  * @param handler Function to be called when a button event occurs
  */
-void EventDrivenButtonHandler::addClickHandler(
+void SingleButtonHandler::addClickHandler(
     std::function<void(ClickType)> handler) {
   handlers.push_back(handler);
 }
@@ -71,13 +71,13 @@ void EventDrivenButtonHandler::addClickHandler(
 /**
  * @brief Removes all registered callback functions
  */
-void EventDrivenButtonHandler::removeClickHandlers() { handlers.clear(); }
+void SingleButtonHandler::removeClickHandlers() { handlers.clear(); }
 
 /**
  * @brief Reads the current state of the button
  * @return True if the button is pressed, false otherwise
  */
-bool EventDrivenButtonHandler::isPressed() const {
+bool SingleButtonHandler::isPressed() const {
   bool currentState = digitalRead(pin);
   return activeLow ? !currentState : currentState;
 }
@@ -86,7 +86,7 @@ bool EventDrivenButtonHandler::isPressed() const {
  * @brief Notifies all registered handlers of a button event
  * @param clickType Type of button event to notify
  */
-void EventDrivenButtonHandler::notifyHandlers(ClickType clickType) {
+void SingleButtonHandler::notifyHandlers(ClickType clickType) {
   for (auto &handler : handlers) {
     handler(clickType);
   }
@@ -96,7 +96,7 @@ void EventDrivenButtonHandler::notifyHandlers(ClickType clickType) {
  * @brief Processes button state changes - must be called regularly in the main
  * loop
  */
-void EventDrivenButtonHandler::update() {
+void SingleButtonHandler::update() {
   unsigned long currentTime = millis();
   bool pressed = isPressed();
 

@@ -1,20 +1,20 @@
 #ifndef MULTI_BUTTON_HANDLER_H
 #define MULTI_BUTTON_HANDLER_H
 
-#include "EventDrivenButtonHandler.h"
+#include "SingleButtonHandler.h"
 #include <functional>
 #include <vector>
 
 /**
  * MultiButtonHandler
  *
- * Detects events occurring across multiple EventDrivenButtonHandler instances.
+ * Detects events occurring across multiple SingleButtonHandler instances.
  * It supports registering handlers for combinations of buttons and will
  * forward a ClickType (SHORT_CLICK_DOWN, SHORT_CLICK_UP, LONG_CLICK_DOWN,
  * LONG_CLICK_UP) to callbacks just like
- * EventDrivenButtonHandler::addClickHandler does for single buttons.
+ * SingleButtonHandler::addClickHandler does for single buttons.
  *
- * The API intentionally mirrors EventDrivenButtonHandler's callback signature
+ * The API intentionally mirrors SingleButtonHandler's callback signature
  * by providing callbacks that receive a ClickType. For multi-button combos
  * the callback is registered for all buttons and is invoked with the ClickType
  * when all buttons are pressed or released within the simultaneous threshold.
@@ -36,9 +36,9 @@ public:
 
   /**
    * @brief Add a button to be monitored for simultaneous presses
-   * @param button Pointer to an EventDrivenButtonHandler instance
+   * @param button Pointer to an SingleButtonHandler instance
    */
-  void addButton(EventDrivenButtonHandler *button);
+  void addButton(SingleButtonHandler *button);
 
   /**
    * @brief Set the callback function for simultaneous press events
@@ -60,7 +60,7 @@ public:
 private:
   // @brief Internal structure to track the state of each button
   struct ButtonState {
-    EventDrivenButtonHandler *btn = nullptr; // Pointer to the button handler
+    SingleButtonHandler *btn = nullptr; // Pointer to the button handler
     bool pressed = false;                    // Current pressed state
     unsigned long pressStart = 0;  // Timestamp when the button was pressed
     unsigned long releaseTime = 0; // Timestamp when the button was released

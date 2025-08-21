@@ -16,9 +16,9 @@ MultiButtonHandler::MultiButtonHandler(unsigned long simultaneousThreshold,
 
 /**
  * @brief Add a button to be monitored for simultaneous presses
- * @param button Pointer to an EventDrivenButtonHandler instance
+ * @param button Pointer to an SingleButtonHandler instance
  */
-void MultiButtonHandler::addButton(EventDrivenButtonHandler *button) {
+void MultiButtonHandler::addButton(SingleButtonHandler *button) {
   ButtonState s;
   s.btn = button;
   s.pressed = button->isPressed();
