@@ -21,12 +21,14 @@ A non-blocking Arduino library for event-driven button handling with advanced ca
 
 ## Installation
 
-### Using Arduino IDE Library Manager
-1. Open Arduino IDE
-2. Go to **Sketch > Include Library > Manage Libraries...**
-3. Search for "EventDrivenButtonHandler"
-4. Click Install
-
+### Manual File Placement
+1. Download the library files
+2. Extract the ZIP file
+3. Copy the EventDrivenButtonHandler folder to your Arduino libraries directory:
+* Windows: Documents\Arduino\libraries\
+* Mac: Documents/Arduino/libraries/
+* Linux: ~/Arduino/libraries/
+    
 ### PlatformIO
 ```ini
 lib_deps =
