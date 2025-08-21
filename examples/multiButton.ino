@@ -1,12 +1,12 @@
-#include "EventDrivenButtonHandler.h"
+#include "SingleButtonHandler.h"
 #include "MultiButtonHandler.h"
 
 // GPIO PINs
 #define BUTTON_UP 26
 #define BUTTON_DOWN 27
 
-EventDrivenButtonHandler btnUp(BUTTON_UP);
-EventDrivenButtonHandler btnDown(BUTTON_DOWN);
+SingleButtonHandler btnUp(BUTTON_UP);
+SingleButtonHandler btnDown(BUTTON_DOWN);
 MultiButtonHandler btnUpDown(50);
 
 void setup() {
