@@ -38,15 +38,15 @@ lib_deps =
 
 ### Example
 ```c++
-#include "EventDrivenButtonHandler.h"
+#include "SingleButtonHandler.h"
 #include "MultiButtonHandler.h"
 
 // GPIO PINs
 #define BUTTON_UP 27
 #define BUTTON_DOWN 28
 
-EventDrivenButtonHandler btnUp(BUTTON_UP);
-EventDrivenButtonHandler btnDown(BUTTON_DOWN);
+SingleButtonHandler btnUp(BUTTON_UP);
+SingleButtonHandler btnDown(BUTTON_DOWN);
 MultiButtonHandler btnUpDown(50);
 
 void setup() {
@@ -110,7 +110,7 @@ void setup() {
 });
 }
 
-void loop() {  
+void loop() {
   btnUp.update();
   btnDown.update();
   btnUpDown.update();
