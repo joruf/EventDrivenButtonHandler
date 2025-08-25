@@ -29,12 +29,6 @@ A non-blocking Arduino library for event-driven button handling with advanced ca
 * Windows: Documents\Arduino\libraries\
 * Mac: Documents/Arduino/libraries/
 * Linux: ~/Arduino/libraries/
-    
-### PlatformIO
-```ini
-lib_deps =
-    https://github.com/yourusername/EventDrivenButtonHandler.git
-```
 
 ### Example
 ```c++
